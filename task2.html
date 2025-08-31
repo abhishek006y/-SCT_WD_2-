@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculator Web Application</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #2c2c3e;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .calculator {
+      background-color: #1a1a2e;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 15px #000;
+      width: 300px;
+    }
+    #display {
+      width: 100%;
+      height: 50px;
+      background-color: #0f0f23;
+      border: none;
+      color: white;
+      font-size: 24px;
+      text-align: right;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    button {
+      height: 50px;
+      font-size: 18px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      background-color: #3a3a5a;
+      color: white;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #55557a;
+    }
+    button.operator {
+      background-color: #ff9500;
+      color: black;
+    }
+    button.operator:hover {
+      background-color: #ffa733;
+    }
+    button.equal {
+      grid-column: span 2;
+      background-color: #00c853;
+      color: white;
+    }
+    button.equal:hover {
+      background-color: #00e676;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <input type="text" id="display" disabled placeholder="0" />
+    <div class="buttons">
+      <button data-value="7">7</button>
+      <button data-value="8">8</button>
+      <button data-value="9">9</button>
+      <button data-value="/" class="operator">/</button>
+
+      <button data-value="4">4</button>
+      <button data-value="5">5</button>
+      <button data-value="6">6</button>
+      <button data-value="*" class="operator">*</button>
+
+      <button data-value="1">1</button>
+      <button data-value="2">2</button>
+      <button data-value="3">3</button>
+      <button data-value="-" class="operator">-</button>
+
+      <button data-value="0">0</button>
+      <button data-value=".">.</button>
+      <button id="clear">C</button>
+      <button data-value="+" class="operator">+</button>
+
+      <button id="equal" class="equal">=</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const display = document.getElementById('display');
+      const buttons = document.querySelectorAll('button[data-value]');
+      const clearButton = document.getElementById('clear');
+      const equalButton = document.getElementById('equal');
+
+      let currentInput = '';
+
+      // Function to update display
+      function updateDisplay(value) {
+        display.value = value;
+      }
+
+      // Function to handle button clicks
+      buttons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Prevent multiple decimal points in a number
+          if (button.dataset.value === '.') {
+            if (currentInput && !currentInput.match(/(\d*\.\d*)$/)) {
+              currentInput += '.';
+            } else if (!currentInput) {
+              // If empty input, start with "0."
+              currentInput = '0.';
+            }
+          } else {
+            currentInput += button.dataset.value;
+          }
+
+          updateDisplay(currentInput);
+        });
+      });
+
+      // Clear display
+      clearButton.addEventListener('click', () => {
+        currentInput = '';
+        updateDisplay('');
+      });
+
+      // Calculate result
+      equalButton.addEventListener('click', () => {
+        try {
+          // Sanitize input: allow only digits and operators
+          if (/[^-()\d/*+.]/.test(currentInput)) {
+            throw new Error("Invalid characters");
+          }
+
+          // Calculate result using Function constructor rather than eval
+          const result = Function(`"use strict";return (${currentInput})`)();
+
+          if (result === undefined || result === null || isNaN(result)) {
+            throw new Error('Invalid calculation');
+          }
+
+          currentInput = result.toString();
+          updateDisplay(currentInput);
+        } catch (error) {
+          updateDisplay('Error');
+          currentInput = '';
+        }
+      });
+
+      // Keyboard input handling
+      document.addEventListener('keydown', (event) => {
+        const key = event.key;
+
+        if (/\d/.test(key) || key === '.' || ['+', '-', '*', '/'].includes(key)) {
+          currentInput += key;
+          updateDisplay(currentInput);
+        } else if (key === 'Enter') {
+          equalButton.click();
+        } else if (key === 'Backspace') {
+          currentInput = currentInput.slice(0, -1);
+          updateDisplay(currentInput);
+        } else if (key.toLowerCase() === 'c') {
+          clearButton.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
